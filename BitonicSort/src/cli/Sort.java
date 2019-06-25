@@ -2,8 +2,15 @@ package cli;
 
 import java.io.*;
 import java.util.*;
+
+import bitonicSort.BitonicSort;
 import logging.Logger;
 
+/**
+ * Command line application to allow sorting of integers.
+ * Input may come from files or standard input.
+ * Direction of sort may be reversed.
+ */
 public class Sort implements AutoCloseable {
     // OPTIONS
     boolean reversed = false;
@@ -23,6 +30,9 @@ public class Sort implements AutoCloseable {
     //Reader reader = System.console().reader();
 
 
+    /**
+     * Constructor, sets up necessary fields.
+     */
     public Sort()
     {
         logger = Logger.getSingletonInstance(Logger.Level.ERROR);
@@ -31,6 +41,11 @@ public class Sort implements AutoCloseable {
         err =  System.err;
     }
 
+    /**
+     * Factory method for constructing Sort
+     * @return
+     * @throws FactoryException
+     */
     public static Sort createDefaultSort() throws FactoryException {
         Sort sort = new Sort();
         if (sort.logger == null)
@@ -40,6 +55,9 @@ public class Sort implements AutoCloseable {
         return sort;
     }
 
+    /**
+     * Prints help message to out
+     */
     void helpMessage() {
         String head =
                     "Sort [OPTION]... [FILE|-]%n" +
@@ -54,11 +72,22 @@ public class Sort implements AutoCloseable {
         out.printf(option, "-h, --help", "Display this help and exit.");
     }
 
+    /**
+     * Method to handle and report back an error when running
+     * a command i.e syntax error, list error, file error
+     * @param e Error message
+     */
     void commandError(String e) {
         logger.log(Logger.Level.ERROR, e);
         if (!quiet) helpMessage();
     }
 
+    /**
+     * Given raw arguments from command, will check for validity
+     * and extract information, setting appropriate variables in Sort to reflect that.
+     * @param args  String of arguments to command supplied from command line.
+     * @throws BadParamatersException   If args is null empty or contains invalid/unsupported arguments
+     */
     void processArgs(String[] args) throws BadParamatersException {
         if (args == null || args.length  == 0) throw new BadParamatersException("invalid argument");
 
@@ -86,6 +115,10 @@ public class Sort implements AutoCloseable {
         }
     }
 
+    /**
+     * Reads integers from input stream and adds them to list.
+     * @param inputStream   Input stream to extract integer values for list
+     */
     void readListFromInputStream (InputStream inputStream) {
 
         Scanner sc = new Scanner(inputStream);
@@ -100,16 +133,28 @@ public class Sort implements AutoCloseable {
             commandError("List empty.");
     }
 
+    /**
+     * Reads integers from file and adds them to list.
+     * @param filename File name and path to read integers from
+     * @throws IOException
+     */
     void getListFromFile(String filename) throws IOException {
         try (FileInputStream fileInputStream = new FileInputStream(new File(sourceFile))) {
             readListFromInputStream(fileInputStream);
         }
     }
 
+    /**
+     * Reads integers from standard input and adds them to list.
+     */
     void getListFromStandardInput() {
         readListFromInputStream(in);
     }
 
+    /**
+     * Reads integers from correct source (as was specified in command's arguments)
+     * @throws IOException
+     */
     void readListFromSource() throws IOException {
         if (sourceFromFile) {
             getListFromFile(sourceFile);
@@ -119,10 +164,17 @@ public class Sort implements AutoCloseable {
         }
     }
 
+
+    /**
+     * Performs sort on list.
+     */
     void sort() {
-        list.sort(Integer::compareTo);
+        BitonicSort.sort(list, Integer::compareTo);
     }
 
+    /**
+     * Prints list to out.
+     */
     void print() {
         for (int i = 0; i < list.size(); i++) {
             out.print(list.get(i));

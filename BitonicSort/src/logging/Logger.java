@@ -1,7 +1,13 @@
 package logging;
 
+/**
+ * Logger handles common logging at various levels.
+ */
 public class Logger {
 
+    /**
+     * Log level
+     */
     public enum Level {
         ALL(0), TRACE(1), DEBUG(2), INFO(3), WARN(4), ERROR(5), FATAL(6), OFF(7);
         private Integer level;
@@ -12,10 +18,19 @@ public class Logger {
     private static volatile Logger instance = null;
     private Level level;
 
+    /**
+     * Construct logger which will not output logs below level level
+     * @param level
+     */
     public Logger(Level level) {
         this.level = level == null ? Level.ERROR : level;
     }
 
+    /**
+     * Returns (or constructs if first call) common Logger singleton for specified level
+     * @param level
+     * @return
+     */
     public static Logger getSingletonInstance(Level level) {
         if (instance == null) {
             synchronized (Logger.class) {
@@ -27,6 +42,12 @@ public class Logger {
         return instance;
     }
 
+    /**
+     * Logs message to level
+     * Message will be output if level more severe than this.level
+     * @param level     Severity of log
+     * @param message   Message of log
+     */
     public void log(Level level, String message) {
         if (level.isWorseThan(this.level)) {
             if (System.err != null && level.isWorseThan(Level.ERROR))
